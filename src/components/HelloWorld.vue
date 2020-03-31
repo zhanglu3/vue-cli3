@@ -7,6 +7,14 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
+interface vueInstanceData {
+  WIDTH: number,
+  HEIGHT: number,
+  ctx: CanvasRenderingContext2D,
+  xSpeed: number,
+  ySpeed: number
+}
+
 class Particle {
   private x: number;
   private y: number;
@@ -15,14 +23,14 @@ class Particle {
   private vy: number;
   private initX: number;
   private initY: number;
-  private ctx: any;
+  private ctx: CanvasRenderingContext2D;
 
-  constructor(center, opt) {
+  constructor(center: {x: number, y: number}, opt: vueInstanceData) {
       this.x = center.x; // 记录点位最终应该停留在的x轴位置
       this.y = center.y; // 记录点位最终应该停留在的y轴位置
       this.item = 0;     // 贝塞尔曲线系数
-      this.vx = 2.0;      // 点位在x轴的移动速度
-      this.vy = 1.6;       // 点位在y轴的移动速度
+      this.vx = opt.xSpeed;      // 点位在x轴的移动速度
+      this.vy = opt.ySpeed;       // 点位在y轴的移动速度
       this.initX = Math.random() * opt.WIDTH; // 点位随机在画布中的x坐标
       this.initY = Math.random() * opt.HEIGHT; // 点位随机在画布中的y坐标
       this.ctx = opt.ctx;
@@ -51,7 +59,7 @@ class Particle {
 }
 
 // t:贝塞尔曲线系数，0-1之前。p1: 轨迹移动的起点。p2: 轨迹移动的终点。cp1: 第一个控制点。cp2: 第二个控制点。
-const threeBezier = (t, p1, p2, cp1, cp2) => {
+const threeBezier = (t: number, p1: number[], p2: number[], cp1: number[], cp2: number[]) => {
   const [startX,startY] = p1;
   const [endX,endY] = p2;
   const [cpX1,cpY1] = cp1;
@@ -71,56 +79,100 @@ const threeBezier = (t, p1, p2, cp1, cp2) => {
 }
 
 @Component
-export default class HelloWorld extends Vue {
+export default class HelloWorld extends Vue implements vueInstanceData {
   @Prop() private msg!: string;
   @Prop({
     type: Number,
     default: 1000
-  }) private delayTime: number
+  }) private delayTime!: number
+  @Prop({
+    type: Number,
+    default: 2.0
+  }) public xSpeed!: number
+  @Prop({
+    type: Number,
+    default: 1.6
+  }) public ySpeed!: number
+  @Prop({
+    type: Number,
+    default: 60
+  }) public fontSize!: number
+  @Prop({
+    type: String,
+    default: 'Arial'
+  }) public fontFamily!: string
+  @Prop({
+    type: Number,
+    default: 4
+  }) public pixelGap!: number // 扫描文字像素时的像素间隔，间隔越大，扫描越粗略
 
    WIDTH: number = 0;
    HEIGHT: number = 0;
-   ctx: CanvasRenderingContext2D;
-   raf: number;
-   points: Particle[];
-   timer: any;
+   ctx!: CanvasRenderingContext2D;
+   raf!: number;
+   points!: Particle[];
+   timer!: any;
 
   private mounted (): void { 
     this.initCanvas();
   }
 
+  /**
+   * 初始化方法
+   */
   initCanvas(): void {
     this.WIDTH = (this.$refs.canvas_wrap as HTMLElement).offsetWidth;
     this.HEIGHT = (this.$refs.canvas_wrap as HTMLElement).offsetHeight;
-    const canvas: any =  this.$refs.canvas; //主画布
+    const canvas: any =  this.$refs.canvas; // 主画布
     canvas.width = this.WIDTH;
     canvas.height = this.HEIGHT;
     this.ctx = canvas.getContext('2d');
-    this.points =  this.createViceCanvas(); // 创建副画布，写出想展示的文字，并且获取文字的位置信息。
+    this.points = this.createViceCanvas(); // 创建副画布，写出想展示的文字，并且获取文字的位置信息。
     this.init();
   }
 
+  /**
+   * 创建副画布
+   */
   createViceCanvas(): Particle[] {
     const viceCanvas = document.createElement('canvas')
     viceCanvas.width = this.WIDTH;
     viceCanvas.height = this.HEIGHT;
-    let viceCxt = viceCanvas.getContext('2d')
+    let viceCxt = viceCanvas.getContext('2d') as CanvasRenderingContext2D
     this.createTextCanvas(viceCxt)
     return this.getFontInfo(viceCxt); // 获取文字粒子的位置信息
   }
 
+  /**
+   * 创建文字
+   */
   createTextCanvas(ctx: CanvasRenderingContext2D): void {
-    ctx.font = '60px Arial';
+    ctx.font = `${this.fontSize}px ${this.fontFamily}`;
     const measure =  ctx.measureText(this.msg);
-    ctx.fillText(this.msg, (this.WIDTH - measure.width) / 2, this.HEIGHT / 2); // 文字居中
+    let scaled = this.WIDTH/measure.width;
+    let x
+    ctx.save();
+    // 若文字宽度超过画布宽度，需要根据相应比例缩放宽高
+    if (scaled < 1) {
+      ctx.scale(scaled, 1);
+      x = 0;
+    } else {
+      x = this.WIDTH - measure.width
+    }
+    ctx.textBaseline = "middle"
+    ctx.fillText(this.msg, x / 2, this.HEIGHT / 2); // 文字居中
+    ctx.restore()
   }
 
-  getFontInfo(ctx: CanvasRenderingContext2D): Particle[] { //ctx是副画布，文字取点，获取每个文字在画布中的坐标
+  /**
+   * 获取文字像素点位置
+   */
+  getFontInfo(ctx: CanvasRenderingContext2D): Particle[] { // ctx是副画布，文字取点，获取每个文字在画布中的坐标
     let imageData = ctx.getImageData(0,0,this.WIDTH,this.HEIGHT).data; // 返回Uint8ClampedArray（8位无符号整型固定数组）类型化数组，长度为长*宽*4
     const particles = [];
-    for(let x = 0; x < this.WIDTH; x += 4) {
-        for(let y=0; y < this.HEIGHT; y += 4) {
-            const fontIndex = (x + y * this.WIDTH) * 4 + 3;
+    for(let x = 0; x < this.WIDTH; x += this.pixelGap) {
+        for(let y=0; y < this.HEIGHT; y += this.pixelGap) {
+            const fontIndex = (x + y * this.WIDTH) * 4 + 3; // rgba，如果a > 0，那么这个位置就有文字像素
             if(imageData[fontIndex] > 0) {
                 particles.push(new Particle({
                     x,
@@ -144,19 +196,35 @@ export default class HelloWorld extends Vue {
   }
 
   refresh(): void {
-    this.initCanvas();
+    const canvas: any =  this.$refs.canvas; // 主画布
+    canvas.width = this.WIDTH;
+    canvas.height = this.HEIGHT;
+    this.points =  this.createViceCanvas(); // 重新创建副画布
+    this.init();
   }
 
   resize(): void {
     if (!this.timer) {
-        this.timer = setTimeout(()=> {
-          this.WIDTH = (this.$refs.canvas_wrap as HTMLElement).offsetWidth;
-          this.HEIGHT = (this.$refs.canvas_wrap as HTMLElement).offsetHeight;
-          this.refresh();
-          this.timer = clearTimeout(this.timer);
-          console.log(this.WIDTH, this.HEIGHT);
-        }, this.delayTime);
-      }
+      const me = this;
+      this.timer = setTimeout(()=> {
+        const element = me.$refs.canvas_wrap as HTMLElement;
+        const new_width = element.offsetWidth;
+        const new_height = element.offsetHeight;
+        const scale_width = new_width / me.WIDTH;
+        const scale_height = new_height / me.HEIGHT;
+        console.log(new_width, new_height);
+
+        me.WIDTH = new_width;
+        me.HEIGHT = new_height;
+
+        me.ctx.save()
+        me.ctx.scale(scale_width, scale_height)
+        me.refresh();
+        me.ctx.restore()
+        me.timer = clearTimeout(me.timer);
+        
+      }, this.delayTime);
+    }
   }
 
 }

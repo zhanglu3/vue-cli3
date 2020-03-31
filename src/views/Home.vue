@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <h1 @click="refresh">{{ msg }}</h1>
-    <HelloWorld ref="canvas" :msg="msg" :test="{name: 'xxx'}"/>
+    <HelloWorld ref="canvas" :msg="msg"/>
   </div>
 </template>
 
