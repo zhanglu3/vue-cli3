@@ -1,5 +1,5 @@
 <template>
-  <div ref="canvas_wrap" class="hello">
+  <div ref="canvas_wrap" class="co_helloworld">
     <canvas ref="canvas" id="canvas"></canvas>
   </div>
 </template>

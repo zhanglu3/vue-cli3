@@ -5,10 +5,15 @@ import router from './router'
 import store from './store'
 import '@/styles/global.less';
 
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+
 Vue.config.productionTip = false
 
 console.log(process.env.NODE_ENV);
 console.log(process.env.VUE_APP_URL);
+
+Vue.use(ElementUI);
 
 new Vue({
   router,
