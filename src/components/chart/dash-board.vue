@@ -1,10 +1,32 @@
 <template>
     <div class="co-chart-dashboard">
-        <canvas ref="dashboard" :width="width" :height="height"></canvas>
+        <canvas ref="dashboard_dial" :width="width" :height="height"></canvas>
+        <canvas ref="dashboard_hand" :width="width" :height="height"></canvas>
     </div>
 </template>
 
 <script lang="ts">
+
+interface DataConfig {
+    ctx: any,
+    baseCtx: any,
+    area:  number,                // 4个刻度区域
+    split: number,               // 每个区域有5个刻度
+    emptyAreaDegree: number,    // 下方空白区域所占角度
+    areaGap: number,            // 每个区域间隔的度数
+    gapRadian: number,           // 每个区域间隔的弧度
+    valueAmount: number,         // 当前value所占刻度数
+    unitDegree: number,          // 每个刻度所占弧度
+    startRadian: number,         // 起始弧度
+    step: number,             // 动画每帧所转的弧度
+    stepFrequency: number,      // 动画帧数
+    rangeList: number[],          // [最小值，最大值]
+    currentValue: number,     // 当前正在渲染的弧度
+    radian: number,              // 每个刻度区域的弧度
+    raf: number|null,              // canvas动画标识
+    valueEndRadian: number      // 当前value对应的弧度
+}
+
 import Vue from 'vue'
 export default Vue.extend({
     name: 'Dashboard',
@@ -70,9 +92,10 @@ export default Vue.extend({
             default: 55
         },
     },
-    data() {
+    data():DataConfig {
         return {
-            ctx: CanvasRenderingContext2D,
+            ctx: null,
+            baseCtx: null,
             area: 4,                // 4个刻度区域
             split: 5,               // 每个区域有5个刻度
             emptyAreaDegree: 80,    // 下方空白区域所占角度
@@ -81,10 +104,10 @@ export default Vue.extend({
             valueAmount: 0,         // 当前value所占刻度数
             unitDegree: 0,          // 每个刻度所占弧度
             startRadian: 0,         // 起始弧度
-            step: null,             // 动画每帧所转的弧度
+            step: 0,             // 动画每帧所转的弧度
             stepFrequency: 60,      // 动画帧数
             rangeList: [],          // [最小值，最大值]
-            currentValue: null,     // 当前正在渲染的弧度
+            currentValue: 0,     // 当前正在渲染的弧度
             radian: 0,              // 每个刻度区域的弧度
             raf: null,              // canvas动画标识
             valueEndRadian: 0,      // 当前value对应的弧度
@@ -93,7 +116,7 @@ export default Vue.extend({
     watch: {
         value(val) {
             if(val === '') val = 0;
-            val = val > this.rangeList[1] ? this.rangeList[1] : val; // 超出最大值时取最大值
+            val = Number(val) > this.rangeList[1] ? this.rangeList[1] : Number(val); // 超出最大值时取最大值
             this.valueEndRadian = this.getRadian(val);
             this.step = (this.valueEndRadian - this.currentValue) / this.stepFrequency;
             this.currentValue += this.step;
@@ -105,16 +128,17 @@ export default Vue.extend({
     },
     methods: {
         init() {
-            const canvas = this.$refs.dashboard;
-            this.ctx = canvas.getContext('2d');
+            const canvas_dial = this.$refs.dashboard_dial as HTMLCanvasElement;
+            const canvas_hand = this.$refs.dashboard_hand as HTMLCanvasElement;
+            this.baseCtx = canvas_dial.getContext('2d') as CanvasRenderingContext2D;
+            this.ctx = canvas_hand.getContext('2d') as CanvasRenderingContext2D;
 
-            console.log('start')
             if (this.range.length !== 2) {
                 this.$emit('onError', 'property range must have two number members!');
                 throw new Error('property range must have two number members!');
             }
             
-            this.rangeList = this.range.sort();
+            this.rangeList = this.range.sort() as number[];
             // 每个刻度区域的弧度
             this.radian = (360 - this.emptyAreaDegree - this.areaGap * (this.area - 1)) / this.area * Math.PI / 180;
             // 每个刻度的弧度
@@ -125,11 +149,29 @@ export default Vue.extend({
             this.gapRadian = this.areaGap * Math.PI / 180;
 
             // 当前值最终弧度
-            this.valueEndRadian = this.getRadian(this.value);
+            this.valueEndRadian = this.getRadian(Number(this.value));
             this.currentValue = this.startRadian;
             this.step = (this.valueEndRadian - this.startRadian) / this.stepFrequency;
 
+            // 绘制表盘
+            this.drawDial();
+            
             this.draw();
+        },
+
+        /**
+         * 获取新图层
+         */
+        getNewCanvas():{canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D} {
+            const viceCanvas = document.createElement('canvas')
+            viceCanvas.width = this.width;
+            viceCanvas.height = this.height;
+            let viceCtx = viceCanvas.getContext('2d') as CanvasRenderingContext2D;
+
+            return {
+                canvas: viceCanvas,
+                ctx: viceCtx
+            }
         },
 
         /**
@@ -144,11 +186,11 @@ export default Vue.extend({
         },
 
         draw() {
-            this.ctx.clearRect(0, 0, this.width, this.height)
+            this.ctx.clearRect(0, 0, this.width, this.height);
+
             // 绘制文字
             this.drawText();
-            // 绘制表盘
-            this.drawDial();
+
             // 绘制指针
             this.drawHand(this.currentValue);
             this.currentValue += this.step;
@@ -156,9 +198,8 @@ export default Vue.extend({
             this.raf = window.requestAnimationFrame(this.draw);
             
             // 区别增加跟减少两种情况
-            if( (this.step > 0 && this.currentValue >= this.valueEndRadian) || (this.step < 0 && this.currentValue <= this.valueEndRadian)){
-                this.drawHand(this.valueEndRadian);    // 为了解决currentValue与最终结果的一丢丢误差，强行纠正
-                this.raf = window.cancelAnimationFrame(this.raf)
+            if( (this.step > 0 && this.currentValue > this.valueEndRadian) || (this.step < 0 && this.currentValue < this.valueEndRadian)){
+                window.cancelAnimationFrame(this.raf)
             }
         },
 
@@ -168,7 +209,7 @@ export default Vue.extend({
         drawDial() {
             const pi = Math.PI;
             let {
-                ctx,
+                baseCtx: ctx,
                 width,
                 height,
                 radius,
@@ -216,9 +257,7 @@ export default Vue.extend({
          * 渲染文字
          */
         drawText() {
-            let {
-                ctx
-            } = this;
+            let ctx = this.ctx;
 
             ctx.font = `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
             const measure =  ctx.measureText(this.value);
@@ -231,7 +270,7 @@ export default Vue.extend({
         /**
          * 绘制指针
          */
-        drawHand(val) {
+        drawHand(val:number) {
             const pi = Math.PI;
             let {
                 ctx,
@@ -250,7 +289,7 @@ export default Vue.extend({
             ctx.beginPath();
 
             // 由于原点相较表盘下浮一些高度，所以起始弧度需要根据下浮高度重新计算
-            // TODO: 咋算？？？？
+            // TODO: 咋算？？？？-- 目前按指针原点与表盘中心点一致的方案来实现
 
             ctx.rotate(val);
             ctx.moveTo(0, 0);
@@ -265,3 +304,17 @@ export default Vue.extend({
     }
 })
 </script>
+<style lang="less">
+.co-chart-dashboard {
+    position: relative;
+
+    canvas {
+        position: absolute;
+        // 如果不设置translate，canvas就会相对父元素left: 50%，=.=???
+        // 我发现原因了！！！因为祖先元素#app设置了text-align: center;所以导致canvas向右偏移了50%
+        // 那索性直接让canvas居中吧
+        left: 50%;
+        transform: translate(-50%);
+    }
+}
+</style>

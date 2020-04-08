@@ -15,8 +15,8 @@ export default Vue.extend({
     },
     methods: {
         init() {
-            let canvas = this.$refs.canvas_clock;
-            let ctx = canvas.getContext("2d");
+            let canvas = this.$refs.canvas_clock as HTMLCanvasElement;
+            let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
             this.draw(ctx);
         },
         
@@ -87,7 +87,7 @@ export default Vue.extend({
          * 参数4：要绘制的针的颜色
          * 参数5：ctx
          */
-        drawHand(angle, len, width, color, ctx) {
+        drawHand(angle: number, len: number, width: number, color: string, ctx: CanvasRenderingContext2D) {
             ctx.save();
             ctx.translate(150, 150); //把坐标轴的远点平移到原来的中心
             ctx.rotate(-Math.PI / 2 + angle);  //旋转坐标轴。 x轴就是针的角度
