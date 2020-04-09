@@ -1,8 +1,9 @@
 class BSTNode {
-    constructor(key){
-        this.key = key || Symbol();
+    constructor(data) {
+        this.data = data;
         this.lChild = null;
         this.rChild = null;
+        this.insert = insertToBST;
     }
 }
 
@@ -12,10 +13,16 @@ class BSTNode {
  * @param {BSTNode}} node 
  */
 function createPreOrderBST(node, strArr) {
-    if (strArr.length == 0) return;
+    if (strArr.length == 0) {
+        node = null;
+        return;
+    }
     let str = strArr.shift();
-    if (str == '#') return;
-    node.key = str;
+    if (str == '#') {
+        node = null;
+        return;
+    }
+    node.data = str;
     // 左子树
     if (strArr[0] != '#') {
         node.lChild = new BSTNode();
@@ -39,6 +46,38 @@ function getPreOrderBST(str) {
     createPreOrderBST(rootNode, strArr);
 
     return rootNode;
+}
+
+function insertToBST(val) {
+    val = Number(val);
+    let parent = this; // 目标结点
+    
+    if (val === Number(parent.data)) return;
+
+    // 待插入结点
+    const node = new BSTNode(val);
+    let flag = true;
+
+    while (flag) {
+        // 插入左子树
+        if (val < Number(parent.data)) {
+            // 如果左子树为空，则直接插入
+            if (!parent.lChild) {
+                parent.lChild = node;
+                flag = false;
+            } else {
+                parent = parent.lChild;
+            }
+        } else {
+            // 如果右子树为空，则直接插入
+            if (!parent.rChild) {
+                parent.rChild = node;
+                flag = false;
+            } else {
+                parent = parent.rChild;
+            }
+        }
+    }
 }
 
 export {
