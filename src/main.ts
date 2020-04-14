@@ -12,6 +12,7 @@ Vue.config.productionTip = false
 
 console.log(process.env.NODE_ENV);
 console.log(process.env.VUE_APP_URL);
+console.log(process.env.VUE_APP_BAIDU_AK);
 
 Vue.use(ElementUI);
 

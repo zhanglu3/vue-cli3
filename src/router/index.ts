@@ -2,6 +2,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 
+
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -22,6 +24,11 @@ const routes = [
     path: '/test',
     name: 'test',
     component: (resolve: (...modules: any[]) => void)=>(require(["@/views/Test"],resolve))
+  },
+  {
+    path: '/map',
+    name: 'map',
+    component: () => import('@/views/Map.vue')
   }
 ]
 
