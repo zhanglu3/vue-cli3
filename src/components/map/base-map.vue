@@ -1,12 +1,7 @@
 <template>
-    <div class="pg_map">
-        <el-radio-group v-model="mapType" @change="onTypeChange">
-            <el-radio-button :label="0">清空</el-radio-button>
-            <el-radio-button :label="BMAP">百度</el-radio-button>
-            <el-radio-button :label="AMAP">高德</el-radio-button>
-        </el-radio-group>
-        <div v-if="mapType === BMAP" id="bmap_container" class="map-container" :key="1"></div> 
-        <div v-else-if="mapType === AMAP" id="amap_container" class="map-container" :key="2"></div> 
+    <div class="co_base_map">
+        <div v-if="type === BMAP" id="bmap_container" class="map-container" :key="1"></div> 
+        <div v-else-if="type === AMAP" id="amap_container" class="map-container" :key="2"></div> 
     </div>
 </template>
 <script>
@@ -15,8 +10,14 @@ import {gcjToBd} from 'gis/utils/coordsTransform'
 import Const from 'utils/const/const'
 
 export default {
-    name: 'Map',
-    components: {
+    name: 'BaseMap',
+    props: {
+        type: {
+            type: String,
+            default: Const.MAP_TYPE.BMAP
+        },
+        hideZoomControl: Boolean,
+        hideToolBar: Boolean
     },
     data() {
         return {
@@ -66,10 +67,10 @@ export default {
 };
 </script>
 <style scoped lang="less">
-.pg_map {
-    width: 100%;
+.co_base_map {
     .map-container {
-        min-height: 80vh;
+        width: 100%;
+        height: 100%;
     }
 }
 </style>

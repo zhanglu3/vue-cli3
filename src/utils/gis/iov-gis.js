@@ -3,7 +3,7 @@
  */
 import loadMap from 'gis/loadMap'
 import Const from 'utils/const/const'
-import CoordsTransform from 'gis/utils/coordsTransform'
+import * as CoordsTransform from 'gis/utils/coordsTransform'
 
 const BASE = {
     [Const.MAP_TYPE.BMAP]: () => import('./baidu-map/core'),
@@ -19,6 +19,7 @@ export default class Iovgis {
         this.zoom = opt.zoom || 15;
         this.gisMap = null;    // 地图对象实例
         this.Util = {...CoordsTransform};    // 地图工具方法
+        this.onComplete = opt.onComplete;    // 地图对象初始化完成后的回调方法
 
         const getMapModule = BASE[this.type];    // 地图类型对应的原始基类
 
@@ -31,6 +32,10 @@ export default class Iovgis {
                         zoom: this.zoom
                     });
                     this.gisMap = res.map;
+
+                    if (typeof this.onComplete === 'function') {
+                        this.onComplete(this.gisMap);
+                    }
                 })
             })
             .catch((e) => {
@@ -39,10 +44,12 @@ export default class Iovgis {
     }
 
     destroy() {
+        if(!this.gisMap) return;
+
         if(this.type === Const.MAP_TYPE.AMAP){
-            this.gisMap & this.gisMap.destroy();
+            this.gisMap.destroy();
         } else if(this.type === Const.MAP_TYPE.BMAP) {
-            // 百度地图官方目前销毁地图的方法
+            // 百度地图官方目前没有销毁地图的方法
             this.gisMap.clearOverlays();
         }
     }
