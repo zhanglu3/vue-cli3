@@ -30,7 +30,7 @@ export default class BaiduMap {
                 layer = new AMap.TileLayer.Satellite();
                 break;
             case Const.LAYER_TYPE.ROADNET:
-                layer = [new AMap.TileLayer.Satellite(), new AMap.TileLayer.RoadNet()];
+                layer = new AMap.TileLayer.RoadNet();
                 break;
         }
         this.map.add(layer);

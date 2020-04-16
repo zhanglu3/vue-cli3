@@ -27,11 +27,12 @@ export default class BaiduMap {
                 layer = new BMap.TrafficLayer();    // 创建交通流量图层实例      
                 this.map.addTileLayer(layer);
                 break;
-            case Const.LAYER_TYPE.SATELLITE:
+            case Const.LAYER_TYPE.SATELLITE:        // 卫星图
                 this.map.setMapType(BMAP_SATELLITE_MAP);
                 break;
-            case Const.LAYER_TYPE.ROADNET:
+            case Const.LAYER_TYPE.ROADNET:          // 混合图：卫星+路网
                 this.map.setMapType(BMAP_HYBRID_MAP);
+                break;
         }
 
         return layer;
@@ -40,9 +41,11 @@ export default class BaiduMap {
     removeLayer(type, layer) {
 
         switch(type) {
-            case Const.LAYER_TYPE.SATELLITE:
-            case Const.LAYER_TYPE.ROADNET:
+            case Const.LAYER_TYPE.SATELLITE:       // 移除卫星视图则是恢复普通街道视图
                 this.map.setMapType(BMAP_NORMAL_MAP);
+                break;
+            case Const.LAYER_TYPE.ROADNET:         // 移除卫星和路网的混合视图则是恢复卫星视图
+                this.map.setMapType(BMAP_SATELLITE_MAP);
                 break;
             default:
                 this.map.removeTileLayer(layer);

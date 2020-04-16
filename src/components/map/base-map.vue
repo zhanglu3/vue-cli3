@@ -9,15 +9,20 @@
             </div>
             <div v-if="!hideToolBar" class="tool-bar">
                 <div class="layer-select">
-                    <el-dropdown trigger="click" placement="bottom">
+                    <el-dropdown placement="bottom">
                         <span class="layer-select-link">
                             地图图层<i class="el-icon-arrow-down el-icon--right"></i>
                         </span>
                         <el-dropdown-menu slot="dropdown">
                             <ul class="layer-select-dropdown">
                                 <el-checkbox-group v-model="layerCheckList">
-                                    <li v-for="(item, index) in mapLayerList" :key="index">
+                                    <li v-for="(item) in mapLayerList" :key="item.value">
                                         <el-checkbox :label="item.value" @change="onLayerChange(item)">{{item.name}}</el-checkbox>
+                                        <template v-if="item.child && layerCheckList.includes(item.value)">
+                                            <div v-for="(n, i) in item.child" :key="i" class="layer-select--child">
+                                                <el-checkbox :label="n.value" @change="onLayerChange(n)">{{n.name}}</el-checkbox>
+                                            </div>
+                                        </template>
                                     </li>
                                 </el-checkbox-group>
                             </ul>
@@ -59,8 +64,11 @@ export default {
             },
             mapLayerList: [
                 {name: '路况图层', value: Const.LAYER_TYPE.TRAFFIC},
-                {name: '卫星图层', value: Const.LAYER_TYPE.SATELLITE},
-                {name: '卫星路网', value: Const.LAYER_TYPE.ROADNET},
+                {name: '卫星图层', value: Const.LAYER_TYPE.SATELLITE,
+                    child: [
+                        {name: '路网图层', value: Const.LAYER_TYPE.ROADNET}
+                    ]
+                },
             ],
             layerCheckList: [],
             map: null,
@@ -122,19 +130,24 @@ export default {
         onLayerChange(item) {
             if(this.layerCheckList.includes(item.value)){
                 // 新增图层
-                // 卫星与卫星路网只能二选一
-                const tmp = [Const.LAYER_TYPE.SATELLITE, Const.LAYER_TYPE.ROADNET];
-                if(this.layerCheckList.includes(tmp[0]) && this.layerCheckList.includes(tmp[1])) {
-                    let idx = this.layerCheckList.findIndex(function(value, index) {
-                        return tmp.includes(value) && value !== item.value;
-                    });
-                    this.map.removeLayer(this.layerCheckList[idx].value, this.layerCheckList[idx].layer)
-                    this.layerCheckList.splice(idx, 1);
-                }
                 item.layer = this.map.addLayer(item.value)
             } else {
+                let layer = item.layer;
+
+                // 如果当前图层存在子项，则一并取消
+                if(item.child){
+                    layer = [item.layer];
+                    item.child.forEach(n => {
+                        if(this.layerCheckList.includes(n.value)){
+                            let idx = this.layerCheckList.indexOf(n.value);
+                            layer.push(n.layer);
+                            this.layerCheckList.splice(idx, 1);
+                        }
+                    });
+                }
+
                 // 移除图层
-                this.map.removeLayer(item.value, item.layer)
+                this.map.removeLayer(item.value, layer)
             }
         }
     },
@@ -202,6 +215,9 @@ export default {
 
 .el-dropdown-menu {
     padding: 10px;
+    .layer-select--child {
+        padding-left: 10px;
+    }
 }
 
 .el-checkbox {
