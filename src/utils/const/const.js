@@ -6,4 +6,10 @@ export default class Const {
         BMAP: 'BMAP',
         AMAP: 'AMAP'
     }
+
+    static LAYER_TYPE = {
+        TRAFFIC: 1,      // 路况
+        SATELLITE: 2,    // 卫星
+        ROADNET: 3       // 路网
+    }
 }
