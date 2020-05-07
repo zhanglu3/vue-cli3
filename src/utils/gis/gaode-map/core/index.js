@@ -3,7 +3,7 @@
  */
 import Const from 'utils/const/const'
 
-export default class BaiduMap {
+export default class GaodeMap {
     constructor(opt) {
         // 创建地图实例  
         this.map = new AMap.Map(opt.container, {
