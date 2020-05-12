@@ -1,11 +1,11 @@
-import { transform, WGS84, GCJ02, BD09 } from 'gcoord'
+import { transform, WGS84, GCJ02, BD09 } from 'gcoord';
 
 function baiduTransWgsToBd (pointArr, cb) {
     if (typeof BMap !== 'undefined') {
         const convertor = new BMap.Convertor();
         convertor.translate(pointArr, 1, 5, (data) => {
-            cb & cb(data)
-        })
+            cb && cb(data);
+        });
     }
 }
 
@@ -13,8 +13,8 @@ function baiduTransGcjToBd (pointArr, cb) {
     if (typeof BMap !== 'undefined') {
         const convertor = new BMap.Convertor();
         convertor.translate(pointArr, 3, 5, (data) => {
-            cb & cb(data)
-        })
+            cb && cb(data);
+        });
     }
 }
 
@@ -81,4 +81,4 @@ export {
     gcjToWgs,
     gcjToBd,
     bdToGcj
-}
+};
