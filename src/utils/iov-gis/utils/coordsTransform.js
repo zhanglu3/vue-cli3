@@ -18,54 +18,54 @@ function baiduTransGcjToBd (pointArr, cb) {
     }
 }
 
-function bdToWgs(input) {
+function bdToWgs(lng, lat) {
     const result = transform(
-        input,
+        [lng, lat],
         BD09,
         WGS84
     );
     return result;
 }
 
-function wgsToBd(input) {
+function wgsToBd(lng, lat) {
     const result = transform(
-        input,
+        [lng, lat],
         WGS84,
         BD09
     );
     return result;
 }
 
-function wgsToGcj(input) {
+function wgsToGcj(lng, lat) {
     const result = transform(
-        input,
+        [lng, lat],
         WGS84,
         GCJ02
     );
     return result;
 }
 
-function gcjToWgs(input) {
+function gcjToWgs(lng, lat) {
     const result = transform(
-        input,
+        [lng, lat],
         GCJ02,
         WGS84
     );
     return result;
 }
 
-function gcjToBd(input) {
+function gcjToBd(lng, lat) {
     const result = transform(
-        input,
+        [lng, lat],
         GCJ02,
         BD09
     );
     return result;
 }
 
-function bdToGcj(input) {
+function bdToGcj(lng, lat) {
     const result = transform(
-        input,
+        [lng, lat],
         BD09,
         GCJ02
     );

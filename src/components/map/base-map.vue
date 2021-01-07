@@ -34,7 +34,7 @@
     </div>
 </template>
 <script>
-import Iovgis from 'gis/iov-gis'
+import Iovgis from 'utils/iov-gis/iov-gis'
 import Const from 'utils/const/const'
 
 export default {

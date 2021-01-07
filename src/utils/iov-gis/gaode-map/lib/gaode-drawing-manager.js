@@ -11,15 +11,11 @@ export default class GaodeDrawingManager {
 
         try {
             AMap.plugin(['AMap.MouseTool'], () => {
-                // 由于回调时间早于iov-gis-lib中的coreMapLib赋值，所以特意加个延迟
-                let timer = setTimeout(() => {
-                    clearTimeout(timer);
-                    this.manager = new AMap.MouseTool(gisMap);
-                    // 地图工具实例初始化完成回调方法
-                    if (typeof opts.onComplete === 'function') {
-                        opts.onComplete(this.manager);
-                    }
-                }, 0);
+                this.manager = new AMap.MouseTool(gisMap);
+                // 地图工具实例初始化完成回调方法
+                if (typeof opts.onComplete === 'function') {
+                    opts.onComplete(this);
+                }
             });
         } catch (error) {
             if (typeof opts.onError === 'function') {

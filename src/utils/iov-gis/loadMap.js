@@ -8,14 +8,14 @@ export default function loadMap(type, ak) {
 
     return new Promise(function(resolve, reject) {
         if (type === Const.MAP_TYPE.BMAP) {
-            if (BMap) {
+            if (window.BMap) {
                 return resolve(BMap);
             }
             window.onMapCallback = function() {
                 resolve(BMap);
             };
         } else if (type === Const.MAP_TYPE.AMAP) {
-            if (AMap) {
+            if (window.AMap) {
                 return resolve(AMap);
             }
             window.onMapCallback = function() {

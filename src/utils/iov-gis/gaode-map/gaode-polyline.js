@@ -1,5 +1,4 @@
-class GaodePolyLine {
-
+export default class GaodePolyline {
     constructor(arr, opts) {
         let arrPoints = arr.map(item => new AMap.LngLat(item.lon, item.lat));
         const defaultOpts = {
@@ -27,5 +26,3 @@ class GaodePolyLine {
         this.polyline.setPath(arrPoints);
     }
 }
-
-export default GaodePolyLine;

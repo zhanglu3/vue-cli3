@@ -4,7 +4,7 @@
 import Const from '../../const/const.js';
 
 export {default as Marker} from '../baidu-marker.js';
-export {default as PolyLine} from '../baidu-poly-line.js';
+export {default as Polyline} from '../baidu-polyline.js';
 export {default as Circle} from '../baidu-circle.js';
 export {default as Autocomplete} from '../baidu-autocomplete.js';
 export {default as LocalSearch} from '../baidu-local-search.js';
@@ -104,12 +104,13 @@ export default class BaiduMap {
      */
     setViewport(arr) {
         // eslint-disable-next-line array-callback-return
-        let tmp = arr.filter((item) => {
+        let tmp = arr.map((item) => {
             if (item instanceof BMap.Point) {
                 return item;
-            }
-            if (item instanceof BMap.Marker) {
+            } else if (item instanceof BMap.Marker) {
                 return item.getPosition();
+            } else if (item instanceof Array) {
+                return new BMap.Point(...item);
             }
         });
 
@@ -130,6 +131,15 @@ export default class BaiduMap {
     isInBounds(lng, lat) {
         let bound = this.map.getBounds(); // 地图可视区域
         return bound.containsPoint(new BMap.Point(lng, lat));
+    }
+
+    /**
+     * 平滑移动到点
+     * @param {float} lng
+     * @param {float} lat
+     */
+    panToCenter(lng, lat) {
+        this.map.panTo(new BMap.Point(lng, lat));
     }
 
     /**

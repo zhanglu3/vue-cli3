@@ -30,16 +30,12 @@ export default class GaodeDrawingManager {
 
         try {
             AMap.plugin(['AMap.RangingTool'], () => {
-                // 由于回调时间早于iov-gis-lib中的coreMapLib赋值，所以特意加个延迟
-                let timer = setTimeout(() => {
-                    clearTimeout(timer);
-                    this.manager = new AMap.RangingTool(gisMap);
-                    // 地图工具实例初始化完成回调方法
-                    if (typeof opts.onComplete === 'function') {
-                        opts.onComplete(this.manager);
-                    }
-                    this.manager.on('addnode', this.addnodeCallback, this);
-                }, 0);
+                this.manager = new AMap.RangingTool(gisMap);
+                this.manager.on('addnode', this.addnodeCallback, this);
+                // 地图工具实例初始化完成回调方法
+                if (typeof opts.onComplete === 'function') {
+                    opts.onComplete(this);
+                }
             });
         } catch (error) {
             if (typeof opts.onError === 'function') {
@@ -75,7 +71,7 @@ export default class GaodeDrawingManager {
     addEvent(type, cb) {
         // 由于高德API未提供整段测距删除事件，所以对删除事件回调做一个缓存
         EventTmp[type] = cb;
-        this.manager.on(EventName[type], (res) => {
+        let callback = (res) => {
             if (type === MapConst.DISTANCE_EVENT_TYPE.DRAWEND) {
                 this.endPoints.push(this.lastPoint);
                 this.close(); // 为了与百度地图统一，在一次测距结束后关闭测距
@@ -91,7 +87,9 @@ export default class GaodeDrawingManager {
                 return;
             }
             cb(res, this);
-        }, this);
+        };
+        this.manager.on(EventName[type], callback, this);
+        return callback;
     }
 
     /**
@@ -100,7 +98,7 @@ export default class GaodeDrawingManager {
      * @param {Function} cb 绑定的回调方法
      */
     removeEvent(type, cb) {
-        this.manager.on(EventName[type], cb);
+        this.manager.off(EventName[type], cb);
         if (this.endPoints.length) this.endPoints = [];
     }
 

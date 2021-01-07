@@ -16,15 +16,13 @@ const BASE = {
     }
 };
 
-// 属于当前类的私有属性，所以提到类定义外
-let coreMapLib = null; // 对应当前地图工具类的实例对象
-
 export default class IovgisLib {
     constructor(libName, map, opts) {
         this.onComplete = opts.onComplete;
         this.onError = opts.onError;
         this.map = map;
-        this.mapLib = null;
+        this.mapLib = null; // 对应当前地图封装工具类的实例对象
+        this.libManager = null; // 第三方地图工具类实例
 
         const getLibModule = BASE[libName][map.type]; // 地图类型对应的工具类
         const initMapLibFunc = {
@@ -35,7 +33,7 @@ export default class IovgisLib {
         // 按需加载对应地图的封装类文件
         getLibModule().then((module) => {
             // 初始化对应的库对象
-            coreMapLib = initMapLibFunc[libName](module);
+            initMapLibFunc[libName](module);
         });
     }
 
@@ -62,9 +60,10 @@ export default class IovgisLib {
             rectangleOptions: this.rectangleOptions,
             onComplete: (mapLib) => {
                 this.mapLib = mapLib;
+                this.libManager = mapLib.manager;
                 // 地图工具实例初始化完成回调方法
                 if (typeof this.onComplete === 'function') {
-                    this.onComplete(mapLib);
+                    this.onComplete(this.libManager);
                 }
             },
             onError: this.onError
@@ -79,9 +78,10 @@ export default class IovgisLib {
         let lib = new module.default(this.map.gisMap, {
             onComplete: (mapLib) => {
                 this.mapLib = mapLib;
+                this.libManager = mapLib.manager;
                 // 地图工具实例初始化完成回调方法
                 if (typeof this.onComplete === 'function') {
-                    this.onComplete(mapLib);
+                    this.onComplete(this.libManager);
                 }
             },
             onError: this.onError
@@ -95,10 +95,7 @@ export default class IovgisLib {
      * @param {Function} cb 绑定的回调方法
      */
     addEvent(type, cb) {
-        coreMapLib.addEvent(type, (e) => {
-            //TODO: 可以对返回数据做统一处理
-            cb(e, this);
-        });
+        return this.mapLib.addEvent(type, cb);
     }
 
     /**
@@ -107,7 +104,7 @@ export default class IovgisLib {
      * @param {Function} cb 绑定的回调方法
      */
     removeEvent(type, cb) {
-        coreMapLib.removeEvent(type, cb);
+        this.mapLib.removeEvent(type, cb);
     }
 
     /**
@@ -115,21 +112,21 @@ export default class IovgisLib {
      * @param {String} type 绘制模式，对应MapConst.DRAWING_TYPE中的枚举
      */
     setDrawingMode(type) {
-        coreMapLib.setDrawingMode(type);
+        this.mapLib.setDrawingMode(type);
     }
 
     /**
      * 开启绘制/测距
      */
     open() {
-        coreMapLib.open();
+        this.mapLib.open();
     }
 
     /**
      * 关闭绘制/测距
      */
     close() {
-        coreMapLib.close();
+        this.mapLib.close();
     }
 
 }

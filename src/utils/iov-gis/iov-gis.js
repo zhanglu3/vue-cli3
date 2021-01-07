@@ -61,7 +61,7 @@ export default class Iovgis {
     static init() {
         Iovgis.Util = {...CoordsTransform}; // 地图工具方法
         Iovgis.Marker = coreModule.Marker;
-        Iovgis.PolyLine = coreModule.PolyLine;
+        Iovgis.Polyline = coreModule.Polyline;
         Iovgis.Circle = coreModule.Circle;
         Iovgis.Autocomplete = coreModule.Autocomplete;
         Iovgis.LocalSearch = coreModule.LocalSearch;
@@ -155,14 +155,14 @@ export default class Iovgis {
     setViewport(arr) {
         let arrTemp = arr.map((item) => {
             // 从封装的覆盖物实例中过滤出地图覆盖物
-            if (item instanceof Iovgis.Marker || item instanceof Iovgis.PolyLine || item instanceof Iovgis.Circle) {
+            if (item instanceof Iovgis.Marker || item instanceof Iovgis.Polyline || item instanceof Iovgis.Circle) {
                 return item[item.overlayType];
+            } else if (item.lon && item.lat) {
+                return [item.lon, item.lat];
+            } else {
+                // 不属于覆盖物实例则可能为Iovgis.point || Array<lng, lat>
+                return item;
             }
-            if (item.lon && item.lat) {
-                // 不属于覆盖物实例则取其经纬度
-                return new Iovgis.Point(item.lon, item.lat);
-            }
-            return item;
         });
 
         coreMap.setViewport(arrTemp);
@@ -188,7 +188,7 @@ export default class Iovgis {
      * @param {float} lat
      */
     panToCenter(lng, lat) {
-        this.gisMap.panTo(new Iovgis.Point(lng, lat));
+        coreMap.panToCenter(lng, lat);
     }
 
     /**
@@ -211,7 +211,7 @@ export default class Iovgis {
      * @param {Function} opts.deleteCallback     // 测距折线删除回调
      * @param {Function} opts.drawendCallback    // 测距结束回调
      *
-     * @returns {IovgisLib} gisTool
+     * @returns {Promise}
      */
     initDistanceTool(opts) {
         return new Promise((resolve, reject) => {
@@ -223,12 +223,12 @@ export default class Iovgis {
                         ...opts,
                         onComplete: () => {
                             if (typeof opts.deleteCallback === 'function') {
-                                gisTool.addEvent(MapConst.DISTANCE_EVENT_TYPE.DELETE, opts.deleteCallback);
-                                gisTool.deleteCallback = opts.deleteCallback;
+                                let tmp = gisTool.addEvent(MapConst.DISTANCE_EVENT_TYPE.DELETE, opts.deleteCallback);
+                                gisTool.deleteCallback = tmp;
                             }
                             if (typeof opts.drawendCallback === 'function') {
-                                gisTool.addEvent(MapConst.DISTANCE_EVENT_TYPE.DRAWEND, opts.drawendCallback);
-                                gisTool.drawendCallback = opts.drawendCallback;
+                                let tmp = gisTool.addEvent(MapConst.DISTANCE_EVENT_TYPE.DRAWEND, opts.drawendCallback);
+                                gisTool.drawendCallback = tmp;
                             }
                             resolve(gisTool);
                         }
@@ -252,5 +252,34 @@ export default class Iovgis {
             gisLib.removeEvent(MapConst.DISTANCE_EVENT_TYPE.DRAWEND, gisLib.drawendCallback);
         }
 
+    }
+
+    /**
+     * 初始化自动搜索对象
+     *
+     * @param {String} input    // 文本输入框id
+     * @param {Object} opts
+     * @param {Function} opts.selectCallback    // 选中某个POI信息的回调事件
+     *
+     * @returns {Promise}
+     */
+    initAutocomplete(input, opts) {
+        return new Promise((resolve, reject) => {
+            try {
+                let instance = new Iovgis.Autocomplete({
+                    'input': input,
+                    map: this,
+                    onComplete: (_this) => {
+                        if (typeof opts.selectCallback === 'function') {
+                            _this.bindSelectEvent(opts.selectCallback);
+                        }
+                        resolve(_this);
+                    }
+                });
+                return instance;
+            } catch (e) {
+                reject(e);
+            }
+        });
     }
 }

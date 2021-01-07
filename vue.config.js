@@ -11,7 +11,6 @@ module.exports = {
         resolve: {
             alias: {
                 'utils': resolve('./src/utils'),
-                'gis': resolve('./src/utils/gis'),
                 '@': resolve('src')
             }
         },

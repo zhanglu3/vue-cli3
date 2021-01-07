@@ -5,7 +5,7 @@
 import Const from '../../const/const.js';
 
 export {default as Marker} from '../gaode-marker.js';
-export {default as PolyLine} from '../gaode-poly-line.js';
+export {default as Polyline} from '../gaode-polyline.js';
 export {default as Circle} from '../gaode-circle.js';
 export {default as Autocomplete} from '../gaode-autocomplete.js';
 export {default as LocalSearch} from '../gaode-local-search.js';
@@ -84,11 +84,7 @@ export default class GaodeMap {
      */
     setViewport(arr) {
         // eslint-disable-next-line array-callback-return
-        let tmp = arr.filter((item) => {
-            if (!(item instanceof AMap.LngLat)) {
-                return item;
-            }
-        });
+        let tmp = arr.filter(item => (item instanceof AMap.Marker || item instanceof AMap.Polyline || item instanceof AMap.Circle));
         // 高德地图根据覆盖物数组设置地图视野，参数缺省时为当前地图上添加的所有覆盖物图层
         // 空数组无法正确设置视野，需要转为null
         tmp = tmp.length ? tmp : null;
@@ -109,6 +105,15 @@ export default class GaodeMap {
     isInBounds(lng, lat) {
         let bound = this.map.getBounds(); // 地图可视区域
         return bound.contains(new AMap.LngLat(lng, lat));
+    }
+
+    /**
+     * 平滑移动到点
+     * @param {float} lng
+     * @param {float} lat
+     */
+    panToCenter(lng, lat) {
+        this.map.panTo(new AMap.LngLat(lng, lat));
     }
 
     /**

@@ -14,7 +14,7 @@ export default class BaiduDistanceTool {
 
             // 地图工具实例初始化完成回调方法
             if (typeof opts.onComplete === 'function') {
-                opts.onComplete(this.manager);
+                opts.onComplete(this);
             }
         }).catch((e) => {
             if (typeof opts.onError === 'function') {
@@ -25,7 +25,7 @@ export default class BaiduDistanceTool {
 
     static loadLibScript() {
         return new Promise(function(resolve, reject) {
-            if (BMapLib && BMapLib.DistanceTool) {
+            if (window.BMapLib && BMapLib.DistanceTool) {
                 return resolve(BMapLib.DistanceTool);
             }
             window.onDisToolCallback = function() {
@@ -47,9 +47,11 @@ export default class BaiduDistanceTool {
      * @param {Function} cb 绑定的回调方法
      */
     addEvent(type, cb) {
-        this.manager.addEventListener(EventName[type], (e) => {
+        let callback = (e) => {
             cb(e, this);
-        });
+        };
+        this.manager.addEventListener(EventName[type], callback);
+        return callback;
     }
 
     /**

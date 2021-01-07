@@ -14,7 +14,7 @@ export default class BaiduDrawingManager {
 
             // 地图工具实例初始化完成回调方法
             if (typeof opts.onComplete === 'function') {
-                opts.onComplete(this.manager);
+                opts.onComplete(this);
             }
         }).catch((e) => {
             if (typeof opts.onError === 'function') {
@@ -25,7 +25,7 @@ export default class BaiduDrawingManager {
 
     static loadLibScript() {
         return new Promise(function(resolve, reject) {
-            if (BMapLib && BMapLib.DrawingManager) {
+            if (window.BMapLib && BMapLib.DrawingManager) {
                 return resolve(BMapLib.DrawingManager);
             }
             window.onDrawManagerCallback = function() {

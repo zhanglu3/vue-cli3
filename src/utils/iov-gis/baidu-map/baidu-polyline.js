@@ -1,5 +1,4 @@
-class BaiduPolyLine {
-
+export default class BaiduPolyline {
     constructor(arr, opts) {
         let arrPoints = arr.map(item => new BMap.Point(item.lon, item.lat));
         const defaultOpts = {
@@ -22,5 +21,3 @@ class BaiduPolyLine {
         this.polyline.setPath(airPoints);
     }
 }
-
-export default BaiduPolyLine;
