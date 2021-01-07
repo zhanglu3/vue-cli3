@@ -1,14 +1,34 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
-      <router-link to="/test">Test</router-link> |
-      <router-link to="/map">Map</router-link>
+    <div id="app">
+        <div id="nav">
+            <template v-for="(item, index) in menuList">
+                <router-link :key="index" :to="item.path">{{item.name}}</router-link>
+                {{menuLenth > index + 1 ? ' |' : ''}}
+            </template>
+        </div>
+        <router-view/>
     </div>
-    <router-view/>
-  </div>
 </template>
+
+<script>
+export default {
+    data() {
+        return {
+            menuList: [
+                {path: '/', name: 'Home'},
+                {path: '/about', name: 'About'},
+                {path: '/test', name: 'Test'},
+                {path: '/map', name: 'Map'},
+            ]
+        };
+    },
+    computed: {
+        menuLenth() {
+            return this.menuList.length;
+        }
+    },
+};
+</script>
 
 <style lang="less">
 #app {
