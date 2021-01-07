@@ -1,5 +1,6 @@
 <template>
     <div class="home">
+        <WebGLD1 />
         <div @click="refresh">点击刷新以下文字</div>
         <HelloWorld ref="canvas" :msg="msg"/>
         <Clock></Clock>
@@ -14,13 +15,15 @@
 import HelloWorld from '@/components/chart/HelloWorld.vue'
 import Clock from '@/components/chart/clock.vue'
 import Dashboard from '@/components/chart/dash-board.vue'
+import WebGLD1 from '@/components/chart/webgl-d1.vue'
 
 export default {
     name: 'home',
     components: {
         HelloWorld,
         Clock,
-        Dashboard
+        Dashboard,
+        WebGLD1,
     },
     data() {
         return {
