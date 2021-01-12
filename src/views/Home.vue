@@ -1,5 +1,6 @@
 <template>
     <div class="home">
+        <CanvasTree />
         <WebGLD1 />
         <div @click="refresh">点击刷新以下文字</div>
         <HelloWorld ref="canvas" :msg="msg"/>
@@ -16,6 +17,7 @@ import HelloWorld from '@/components/chart/HelloWorld.vue'
 import Clock from '@/components/chart/clock.vue'
 import Dashboard from '@/components/chart/dash-board.vue'
 import WebGLD1 from '@/components/chart/webgl-d1.vue'
+import CanvasTree from '@/components/chart/canvas-tree.vue'
 
 export default {
     name: 'home',
@@ -24,6 +26,7 @@ export default {
         Clock,
         Dashboard,
         WebGLD1,
+        CanvasTree,
     },
     data() {
         return {
