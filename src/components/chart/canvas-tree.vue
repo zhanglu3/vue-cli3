@@ -1,6 +1,6 @@
 <template>
     <div class="co-canvas-tree">
-        <canvas ref="canvas-tree" width="512" height="400"></canvas>
+        <canvas id="co-canvas-tree" ref="canvas-tree" width="512" height="400"></canvas>
     </div>
 </template>
 
@@ -15,7 +15,7 @@ export default Vue.extend({
         }
     },
     mounted() {
-        const canvas = document.querySelector('canvas')!;
+        const canvas = document.querySelector('#co-canvas-tree') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d')!;
 
         // 将坐标原点从左上角移动到左下角，并且让 y 轴翻转为向上
