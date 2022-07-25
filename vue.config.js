@@ -14,5 +14,6 @@ module.exports = {
                 '@': resolve('src')
             }
         },
-    }
+    },
+    lintOnSave: false
 };
